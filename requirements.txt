@@ -1,0 +1,11 @@
+openai==1.*
+fastapi
+uvicorn[standard]
+pydantic==2.*
+python-multipart
+pymongo
+pymupdf
+python-docx
+pillow
+pytesseract
+tenacity
