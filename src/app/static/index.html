@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Parser - Resume Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8f2ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .supported-formats {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .supported-formats h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .format-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .format-tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .upload-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .upload-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .result-item.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .confidence {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .error-message {
+            color: #dc3545;
+        }
+
+        .summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .summary h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .file-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #ddd;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .scoring-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .scoring-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .scoring-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .scoring-input-group label {
+            font-weight: bold;
+            color: #333;
+            min-width: 100px;
+        }
+
+        .scoring-input-group input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .score-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .score-btn:hover {
+            background: #218838;
+        }
+
+        .score-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .scoring-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .score-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: #e9ecef;
+        }
+
+        .score-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .score-component {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .score-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .score-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 HR Parser</h1>
+            <p>Upload resumes or job descriptions - single or bulk</p>
+        </div>
+
+        <!-- Upload Mode Toggle -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="singleResumeModeBtn" onclick="switchMode('single_resume')">Single Resume</button>
+            <button class="mode-btn" id="bulkResumeModeBtn" onclick="switchMode('bulk_resume')">Bulk Resumes</button>
+            <button class="mode-btn" id="singleJobModeBtn" onclick="switchMode('single_job')">Single Job</button>
+            <button class="mode-btn" id="bulkJobModeBtn" onclick="switchMode('bulk_job')">Bulk Jobs</button>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon" id="uploadIcon">📄</div>
+            <div class="upload-text" id="uploadText">Drag & Drop your resume here</div>
+            <div class="upload-subtext" id="uploadSubtext">or click to browse file</div>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.txt,.rtf">
+            <button class="upload-button" id="uploadButton" onclick="document.getElementById('fileInput').click()">
+                Choose File
+            </button>
+        </div>
+
+        <div class="supported-formats">
+            <h3>📋 Supported Formats</h3>
+            <div class="format-list">
+                <span class="format-tag">PDF</span>
+                <span class="format-tag">DOCX</span>
+                <span class="format-tag">DOC</span>
+                <span class="format-tag">TXT</span>
+                <span class="format-tag">RTF</span>
+            </div>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Uploading...</div>
+        </div>
+
+        <div class="results" id="results">
+            <h3>📊 Upload Results</h3>
+            <div id="resultsList"></div>
+            <div class="summary" id="summary"></div>
+        </div>
+
+        <!-- Scoring Section -->
+        <div class="scoring-section" id="scoringSection" style="display: block; margin-top: 30px;">
+            <h3>🎯 Candidate Rankings</h3>
+            <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Upload a job description above to see the top matching candidates automatically ranked by score.</p>
+            <div class="scoring-results" id="scoringResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const results = document.getElementById('results');
+        const resultsList = document.getElementById('resultsList');
+        const summary = document.getElementById('summary');
+
+        let selectedFiles = [];
+        let currentMode = 'single_resume'; // 'single_resume', 'bulk_resume', 'single_job', 'bulk_job'
+
+        // Clear upload preview and reset UI
+        function clearUploadPreview() {
+            selectedFiles = [];
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.value = "";
+            }
+            
+            // Reset upload button
+            const uploadButton = document.getElementById('uploadButton');
+            if (uploadButton) {
+                uploadButton.onclick = () => {
+                    const input = document.getElementById('fileInput');
+                    if (input) input.click();
+                };
+                uploadButton.disabled = false;
+            }
+            
+            // Hide any preview elements
+            const uploadArea = document.getElementById('uploadArea');
+            if (uploadArea) {
+                uploadArea.style.display = 'block';
+            }
+            
+            // Hide progress bar
+            const progressContainer = document.getElementById('progressContainer');
+            if (progressContainer) {
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        // Mode switching
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Toggle active state on tab buttons
+            document.getElementById('singleResumeModeBtn').classList.toggle('active', mode === 'single_resume');
+            document.getElementById('bulkResumeModeBtn').classList.toggle('active', mode === 'bulk_resume');
+            document.getElementById('singleJobModeBtn').classList.toggle('active', mode === 'single_job');
+            document.getElementById('bulkJobModeBtn').classList.toggle('active', mode === 'bulk_job');
+            
+            const uploadIcon = document.getElementById('uploadIcon');
+            const uploadText = document.getElementById('uploadText');
+            const uploadSubtext = document.getElementById('uploadSubtext');
+            const uploadBtn = document.getElementById('uploadButton');
+            const input = document.getElementById('fileInput');
+            
+            // Mode-specific UI and input attributes
+            if (mode === 'single_resume') {
+                uploadIcon.textContent = '📄';
+                uploadText.textContent = 'Drag & Drop your resume here';
+                uploadSubtext.textContent = 'or click to browse file';
+                uploadBtn.textContent = 'Choose Resume';
+                input.removeAttribute('multiple');
+                input.removeAttribute('webkitdirectory');
+                input.removeAttribute('directory');
+                input.setAttribute('accept', '.pdf,.doc,.docx,.txt,.rtf');
+            } else if (mode === 'bulk_resume') {
+                uploadIcon.textContent = '📁';
+                uploadText.textContent = 'Drag & Drop your resume folder here';
+                uploadSubtext.textContent = 'or click to browse files';
+                uploadBtn.textContent = 'Choose Resume Folder';
+                input.setAttribute('multiple', '');
+                input.setAttribute('webkitdirectory', '');
+                input.setAttribute('directory', '');
+                input.removeAttribute('accept');
+            } else if (mode === 'single_job') {
+                uploadIcon.textContent = '💼';
+                uploadText.textContent = 'Drag & Drop your job description here';
+                uploadSubtext.textContent = 'or click to browse file';
+                uploadBtn.textContent = 'Choose Job Description';
+                input.removeAttribute('multiple');
+                input.removeAttribute('webkitdirectory');
+                input.removeAttribute('directory');
+                input.setAttribute('accept', '.pdf,.doc,.docx,.txt,.rtf');
+            } else {
+                uploadIcon.textContent = '📂';
+                uploadText.textContent = 'Drag & Drop your job descriptions folder here';
+                uploadSubtext.textContent = 'or click to browse files';
+                uploadBtn.textContent = 'Choose Job Descriptions Folder';
+                input.setAttribute('multiple', '');
+                input.setAttribute('webkitdirectory', '');
+                input.setAttribute('directory', '');
+                input.removeAttribute('accept');
+            }
+
+            // Always reset state on tab change
+            resetUpload();
+        }
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            results.style.display = 'none';
+            resultsList.innerHTML = '';
+            summary.innerHTML = '';
+            selectedFiles = Array.from(e.target.files || []);
+            updateUploadArea();
+        });
+
+        function handleFiles(files) {
+            // Filter for supported resume formats
+            const supportedExtensions = ['.pdf', '.docx', '.doc', '.txt', '.rtf'];
+            selectedFiles = files.filter(file => {
+                const ext = '.' + file.name.split('.').pop().toLowerCase();
+                return supportedExtensions.includes(ext);
+            });
+
+            if (selectedFiles.length === 0) {
+                alert('No supported resume files found. Please select PDF, DOCX, DOC, TXT, or RTF files.');
+                return;
+            }
+
+            // For single modes, only allow one file
+            if ((currentMode === 'single_resume' || currentMode === 'single_job') && selectedFiles.length > 1) {
+                selectedFiles = [selectedFiles[0]]; // Take only the first file
+                alert('Single mode: Only the first file will be processed.');
+            }
+
+            // Update UI
+            updateFileList();
+            let buttonText;
+            if (currentMode === 'single_resume') {
+                buttonText = 'Upload Resume';
+            } else if (currentMode === 'bulk_resume') {
+                buttonText = `Upload ${selectedFiles.length} Resumes`;
+            } else if (currentMode === 'single_job') {
+                buttonText = 'Upload Job Description';
+            } else if (currentMode === 'bulk_job') {
+                buttonText = `Upload ${selectedFiles.length} Job Descriptions`;
+            }
+            uploadButton.textContent = buttonText;
+            uploadButton.disabled = false;
+            uploadButton.onclick = uploadFiles;
+        }
+
+        function updateFileList() {
+            const fileListHtml = selectedFiles.map(file => `
+                <div class="file-item">
+                    <span>${file.name}</span>
+                    <span class="file-size">${formatFileSize(file.size)}</span>
+                </div>
+            `).join('');
+
+            uploadArea.innerHTML = `
+                <div class="upload-icon">📄</div>
+                <div class="upload-text">${selectedFiles.length} files selected</div>
+                <div class="file-list">${fileListHtml}</div>
+                <button class="upload-button" id="uploadButton" onclick="uploadFiles()">
+                    Upload ${selectedFiles.length} Files
+                </button>
+            `;
+        }
+        
+        function updateUploadArea() {
+            if (selectedFiles.length === 0) {
+                return;
+            }
+            
+            const fileListHtml = selectedFiles.map(file => `
+                <div class="file-item">
+                    <span>${file.name}</span>
+                    <span class="file-size">${formatFileSize(file.size)}</span>
+                </div>
+            `).join('');
+
+            const uploadIcon = currentMode.includes('job') ? '💼' : '📄';
+            const uploadText = `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} selected`;
+            
+            let buttonText;
+            if (currentMode === 'single_resume') {
+                buttonText = 'Upload 1 Files';
+            } else if (currentMode === 'bulk_resume') {
+                buttonText = `Upload ${selectedFiles.length} Files`;
+            } else if (currentMode === 'single_job') {
+                buttonText = 'Upload 1 Files';
+            } else if (currentMode === 'bulk_job') {
+                buttonText = `Upload ${selectedFiles.length} Files`;
+            }
+
+            uploadArea.innerHTML = `
+                <div class="upload-icon">${uploadIcon}</div>
+                <div class="upload-text">${uploadText}</div>
+                <div class="file-list">${fileListHtml}</div>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.txt,.rtf">
+                <button class="upload-button" id="uploadButton">${buttonText}</button>
+            `;
+            
+            // Re-bind upload button
+            const uploadBtn = document.getElementById('uploadButton');
+            if (uploadBtn) {
+                uploadBtn.onclick = uploadFiles;
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFiles() {
+            if (selectedFiles.length === 0) return;
+
+            progressContainer.style.display = 'block';
+            results.style.display = 'none';
+            const btn = document.getElementById('uploadButton');
+            btn.disabled = true;
+            btn.textContent = 'Uploading...';
+
+            const formData = new FormData();
+            let response, result;
+            
+            try {
+                if (currentMode === 'single_resume') {
+                    formData.append('file', selectedFiles[0]);
+                    response = await fetch('/hr/parser/single', { method: 'POST', body: formData });
+                    result = await response.json();
+                    if (response.ok) {
+                        // normalize to bulk-like shape
+                        result = { ok: true, count: 1, results: [result] };
+                    }
+                } else if (currentMode === 'bulk_resume') {
+                    selectedFiles.forEach(f => formData.append('files', f));
+                    response = await fetch('/hr/parser/bulk', { method: 'POST', body: formData });
+                    result = await response.json();
+                } else if (currentMode === 'single_job') {
+                    formData.append('file', selectedFiles[0]);
+                    response = await fetch('/hr/parser/job/single', { method: 'POST', body: formData });
+                    result = await response.json();
+                    if (response.ok) {
+                        result = { ok: true, count: 1, results: [result] };
+                    }
+                } else {
+                    selectedFiles.forEach(f => formData.append('files', f));
+                    response = await fetch('/hr/parser/job/bulk', { method: 'POST', body: formData });
+                    result = await response.json();
+                }
+
+                if (!response.ok) throw new Error(result.detail || 'Upload failed');
+
+                // ✅ Render success summary (existing UI)
+                renderResultsSummary(result);
+                results.style.display = 'block';
+
+                // ✅ Auto-trigger scoring for uploaded items
+                await autoScore(result);
+
+                // ✅ Hard reset so user can drop more files immediately
+                resetUpload();
+
+            } catch (err) {
+                alert('Upload failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = `Upload ${selectedFiles.length || 1} Files`;
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        function renderResultsSummary(result) {
+            let successful = 0;
+            let failed = 0;
+            let totalConfidence = 0;
+            let lastUploadedIds = [];
+
+            result.results.forEach((res) => {
+                if (res.ok) {
+                    successful++;
+                    totalConfidence += res.parsing_confidence || 0;
+                    // Collect uploaded IDs
+                    const idField = currentMode.includes('job') ? 'job_id' : 'candidate_id';
+                    const idValue = res[idField];
+                    if (idValue) {
+                        lastUploadedIds.push({id: idValue, type: currentMode.includes('job') ? 'job' : 'candidate'});
+                    }
+                } else {
+                    failed++;
+                }
+            });
+
+            // Show compact summary banner
+            const avgConfidence = successful > 0 ? (totalConfidence / successful * 100).toFixed(1) : 0;
+            
+            // Create summary notification with IDs
+            const summaryBanner = document.createElement('div');
+            summaryBanner.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+                color: white;
+                padding: 20px 30px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                z-index: 10000;
+                animation: slideIn 0.5s ease;
+                max-width: 450px;
+            `;
+            
+            const idsHtml = lastUploadedIds.slice(0, 3).map(item => `
+                <div style="background: rgba(255,255,255,0.2); padding: 8px; border-radius: 6px; margin: 5px 0; font-size: 11px; word-break: break-all;">
+                    <strong>${item.type === 'job' ? '💼 Job' : '👤 Candidate'}:</strong> ${item.id}
+                    <button onclick="navigator.clipboard.writeText('${item.id}'); alert('Copied!');" style="background: rgba(255,255,255,0.3); border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; margin-left: 5px; font-size: 10px;">Copy</button>
+                    </div>
+            `).join('');
+            
+            summaryBanner.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px;">✅ Upload Complete!</h3>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0; line-height: 1;">&times;</button>
+                    </div>
+                <div style="display: flex; gap: 15px; justify-content: space-between; margin-bottom: 10px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;">${successful}</div>
+                        <div style="font-size: 12px; opacity: 0.9;">Successful</div>
+                    </div>
+                    ${failed > 0 ? `<div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;">${failed}</div>
+                        <div style="font-size: 12px; opacity: 0.9;">Failed</div>
+                    </div>` : ''}
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold;">${avgConfidence}%</div>
+                        <div style="font-size: 12px; opacity: 0.9;">Avg Confidence</div>
+                    </div>
+                </div>
+                ${idsHtml ? `<div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 10px;"><div style="font-size: 12px; margin-bottom: 5px; opacity: 0.9;">📋 Uploaded IDs:</div>${idsHtml}</div>` : ''}
+            `;
+            
+            document.body.appendChild(summaryBanner);
+            
+            // Auto remove after 10 seconds (increased for IDs to be visible)
+            setTimeout(() => {
+                summaryBanner.style.animation = 'slideOut 0.5s ease';
+                setTimeout(() => summaryBanner.remove(), 500);
+            }, 10000);
+            
+            // Scoring section is always visible, no need to populate inputs
+        }
+        
+        // Reset for new upload - clears results and resets UI
+        function resetForNewUpload() {
+            results.style.display = 'none';
+            resultsList.innerHTML = '';
+            summary.innerHTML = '';
+            // Keep scoring section visible
+            document.getElementById('scoringResults').innerHTML = '';
+            resetUpload();
+        }
+
+        // Reset functionality
+        function resetUpload() {
+            selectedFiles = [];
+            if (fileInput) fileInput.value = '';
+
+            // Reset the drop area text and button
+            document.getElementById('uploadArea').innerHTML = `
+                <div class="upload-icon" id="uploadIcon">${currentMode.includes('job') ? '💼' : '📄'}</div>
+                <div class="upload-text" id="uploadText">${
+                    currentMode === 'bulk_resume' ? 'Drag & Drop your resume folder here' :
+                    currentMode === 'bulk_job'    ? 'Drag & Drop your job descriptions folder here' :
+                    currentMode === 'single_job'  ? 'Drag & Drop your job description here' :
+                                                    'Drag & Drop your resume here'
+                }</div>
+                <div class="upload-subtext" id="uploadSubtext">${
+                    currentMode.startsWith('bulk') ? 'or click to browse files' : 'or click to browse file'
+                }</div>
+                <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.txt,.rtf">
+                <button class="upload-button" id="uploadButton">Choose ${currentMode.includes('job') ? 'Job' : 'Resume'}${currentMode.startsWith('bulk') ? (currentMode.includes('job') ? ' Descriptions Folder' : ' Folder') : ''}</button>
+            `;
+
+            // Re-bind the button click to open the hidden input
+            document.getElementById('uploadButton').onclick = () => document.getElementById('fileInput').click();
+            
+            // Re-bind file input change event since we recreated the input element
+            const newFileInput = document.getElementById('fileInput');
+            if (newFileInput) {
+                newFileInput.addEventListener('change', (e) => {
+            results.style.display = 'none';
+                    resultsList.innerHTML = '';
+                    summary.innerHTML = '';
+                    selectedFiles = Array.from(e.target.files || []);
+                    if (updateUploadArea) {
+                        updateUploadArea();
+                    } else {
+                        handleFiles(selectedFiles);
+                    }
+                });
+            }
+
+            // Hide progress & results
+            if (results) results.style.display = 'none';
+            if (progressContainer) progressContainer.style.display = 'none';
+            // Keep scoring section visible - don't hide it
+        }
+
+        // Scoring functions
+        function copyId(id) {
+            navigator.clipboard.writeText(id).then(() => {
+                alert('ID copied to clipboard: ' + id);
+            });
+        }
+
+        async function scoreCandidate() {
+            const candidateId = document.getElementById('candidateIdInput').value.trim();
+            if (!candidateId) {
+                alert('Please enter a candidate ID');
+                return;
+            }
+
+            try {
+                // First, trigger scoring
+                const scoreResponse = await fetch(`/hr/scoring/candidate/${candidateId}`, {
+                    method: 'POST'
+                });
+                const scoreResult = await scoreResponse.json();
+                
+                if (!scoreResponse.ok) {
+                    throw new Error(scoreResult.detail || 'Scoring failed');
+                }
+                
+                // Then fetch the scores
+                const scoresResponse = await fetch(`/hr/scoring/candidate/${candidateId}/scores?limit=10`);
+                const scoresData = await scoresResponse.json();
+                
+                if (scoresResponse.ok && scoresData.scores && scoresData.scores.length > 0) {
+                    showTopMatches(scoresData.scores, 'candidate', candidateId, scoreResult.pairs_scored);
+                } else {
+                    showScoringResult(`Candidate scored against ${scoreResult.pairs_scored} jobs. No matches found yet.`);
+                }
+            } catch (error) {
+                alert('Scoring failed: ' + error.message);
+            }
+        }
+
+        async function scoreJob() {
+            const jobId = document.getElementById('jobIdInput').value.trim();
+            if (!jobId) {
+                alert('Please enter a job ID');
+                return;
+            }
+
+            try {
+                // First, trigger scoring
+                const scoreResponse = await fetch(`/hr/scoring/job/${jobId}`, {
+                    method: 'POST'
+                });
+                const scoreResult = await scoreResponse.json();
+                
+                if (!scoreResponse.ok) {
+                    throw new Error(scoreResult.detail || 'Scoring failed');
+                }
+                
+                // Then fetch the scores
+                const scoresResponse = await fetch(`/hr/scoring/job/${jobId}/scores?limit=10`);
+                const scoresData = await scoresResponse.json();
+                
+                if (scoresResponse.ok && scoresData.scores && scoresData.scores.length > 0) {
+                    showTopMatches(scoresData.scores, 'job', jobId, scoreResult.pairs_scored);
+                } else {
+                    showScoringResult(`Job scored against ${scoreResult.pairs_scored} candidates. No matches found yet.`);
+                }
+            } catch (error) {
+                alert('Scoring failed: ' + error.message);
+            }
+        }
+
+        async function scoreSingleMatch() {
+            const candidateId = document.getElementById('candidateJobInput').value.trim();
+            const jobId = document.getElementById('jobCandidateInput').value.trim();
+            
+            if (!candidateId || !jobId) {
+                alert('Please enter both candidate ID and job ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/hr/scoring/candidate/${candidateId}/job/${jobId}`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSingleMatchResult(result);
+                } else {
+                    throw new Error(result.detail || 'Scoring failed');
+                }
+            } catch (error) {
+                alert('Scoring failed: ' + error.message);
+            }
+        }
+
+        function showScoringResult(message) {
+            const scoringResults = document.getElementById('scoringResults');
+            scoringResults.innerHTML = `
+                <div class="score-item">
+                    <h4>✅ Scoring Complete</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+        
+        async function autoScore(uploadResult) {
+            // Auto-score uploaded jobs against all candidates
+            const results = uploadResult.results || [];
+            
+            for (const res of results) {
+                if (!res.ok) continue;
+                
+                // Only score jobs (each job against all candidates)
+                if (currentMode.includes('job')) {
+                    const jobId = res.job_id;
+                    if (jobId) {
+                        try {
+                            // Show loading indicator
+                            const scoringResults = document.getElementById('scoringResults');
+                            scoringResults.innerHTML = `
+                                <div style="text-align: center; padding: 20px; color: #667eea;">
+                                    <div style="font-size: 2em;">⏳</div>
+                                    <p>Scoring job against all candidates...</p>
+                                </div>
+                            `;
+                            
+                            // Trigger scoring
+                            const scoreResp = await fetch(`/hr/scoring/job/${jobId}`, { method: 'POST' });
+                            
+                            if (!scoreResp.ok) {
+                                const errorText = await scoreResp.text();
+                                console.error('Scoring API error:', errorText);
+                                throw new Error(`Scoring failed: ${scoreResp.status} ${scoreResp.statusText}`);
+                            }
+                            
+                            const scoreResult = await scoreResp.json();
+                            
+                            // Fetch the scores
+                            const scoresResp = await fetch(`/hr/scoring/job/${jobId}/scores?limit=10`);
+                            const scoresData = await scoresResp.json();
+                            
+                            console.log('Scores data received:', scoresData);
+                            console.log('Number of scores:', scoresData.scores ? scoresData.scores.length : 0);
+                            
+                            if (scoresResp.ok && scoresData.scores && scoresData.scores.length > 0) {
+                                console.log('Showing top matches...');
+                                showTopMatches(scoresData.scores, 'job', jobId, scoreResult.pairs_scored);
+                            } else {
+                                console.log('No scores found, showing message');
+                                scoringResults.innerHTML = `
+                                    <div style="text-align: center; padding: 20px; color: #999;">
+                                        <p>No candidates in database yet. Upload some resumes first!</p>
+                                        <p style="font-size: 0.8em;">Debug: ${JSON.stringify(scoresData)}</p>
+                                    </div>
+                                `;
+                            }
+                        } catch (e) {
+                            console.error('Auto-scoring failed:', e);
+                            const scoringResults = document.getElementById('scoringResults');
+                            scoringResults.innerHTML = `
+                                <div style="text-align: center; padding: 20px; color: #dc3545;">
+                                    <p>Scoring failed: ${e.message}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+                // Note: Resume uploads don't trigger auto-scoring
+            }
+        }
+        
+        function showTopMatches(scores, type, id, totalScored) {
+            const scoringResults = document.getElementById('scoringResults');
+            
+            const matchesHtml = scores.map((score, index) => {
+                const candidateId = score.candidate_id;
+                const rank = index + 1;
+                const finalScore = score.final_score || 0;
+                const components = score.components || {};
+                
+                // Determine badge color based on score
+                let badgeColor, badgeText, bgColor, borderColor;
+                if (finalScore >= 80) {
+                    badgeColor = '#28a745'; badgeText = '🌟 Excellent Match'; bgColor = '#d4edda'; borderColor = '#28a745';
+                } else if (finalScore >= 70) {
+                    badgeColor = '#5cb85c'; badgeText = '✅ Strong Match'; bgColor = '#d4edda'; borderColor = '#5cb85c';
+                } else if (finalScore >= 50) {
+                    badgeColor = '#ffc107'; badgeText = '⚠️ Moderate Match'; bgColor = '#fff3cd'; borderColor = '#ffc107';
+                } else {
+                    badgeColor = '#dc3545'; badgeText = '❌ Weak Match'; bgColor = '#f8d7da'; borderColor = '#dc3545';
+                }
+                
+                return `
+                    <div style="background: ${bgColor}; padding: 20px; border-radius: 10px; margin: 15px 0; 
+                                border-left: 6px solid ${borderColor}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="display: inline-block; background: ${badgeColor}; color: white; padding: 4px 12px; 
+                                            border-radius: 20px; font-size: 0.85em; margin-bottom: 8px;">${badgeText}</div>
+                                <div style="font-size: 1.3em; font-weight: bold; margin-top: 5px;">Rank #${rank}</div>
+                                <div style="color: #666; font-size: 0.9em; margin-top: 5px;">👤 Candidate: ${candidateId}</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 3em; font-weight: bold; color: ${badgeColor}; line-height: 1;">
+                                    ${finalScore.toFixed(1)}
+                                </div>
+                                <div style="font-size: 0.8em; color: #666;">Overall Score</div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-top: 15px; 
+                                    padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.1);">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2.5em; font-weight: bold; color: #667eea;">${components.skill || 0}%</div>
+                                <div style="font-size: 1em; color: #666; margin-top: 5px;">💼 Skills Match</div>
+                                <div style="font-size: 0.8em; color: #999; margin-top: 3px; font-weight: bold;">90% weight</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2.5em; font-weight: bold; color: #667eea;">${components.semantic || 0}%</div>
+                                <div style="font-size: 1em; color: #666; margin-top: 5px;">🧠 AI Similarity</div>
+                                <div style="font-size: 0.8em; color: #999; margin-top: 3px; font-weight: bold;">10% weight</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            scoringResults.innerHTML = `
+                <div style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #333; font-size: 1.5em; margin-bottom: 10px;">🏆 Top Candidate Rankings</h4>
+                    <p style="color: #666; font-size: 0.95em; margin-bottom: 20px;">
+                        Automatically scored against ${totalScored} candidates. Showing top ${scores.length} matches:
+                    </p>
+                    ${matchesHtml}
+                </div>
+            `;
+            
+            // Scroll to results
+            setTimeout(() => {
+                document.getElementById('scoringResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function showSingleMatchResult(result) {
+            const scoringResults = document.getElementById('scoringResults');
+            scoringResults.innerHTML = `
+                <div class="score-item">
+                    <h4>🎯 Single Match Score</h4>
+                    <p><strong>Final Score:</strong> ${result.final_score}%</p>
+                    <div class="score-breakdown">
+                        <div class="score-component">
+                            <div class="score-value">${result.components.skill}%</div>
+                            <div class="score-label">Skills</div>
+                        </div>
+                        <div class="score-component">
+                            <div class="score-value">${result.components.experience}%</div>
+                            <div class="score-label">Experience</div>
+                        </div>
+                        <div class="score-component">
+                            <div class="score-value">${result.components.education}%</div>
+                            <div class="score-label">Education</div>
+                        </div>
+                        <div class="score-component">
+                            <div class="score-value">${result.components.semantic}%</div>
+                            <div class="score-label">Semantic</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+

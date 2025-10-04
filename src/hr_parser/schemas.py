@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, conint, confloat, constr
-from typing import List, Optional, Dict, Literal
+from typing import List, Optional, Dict, Literal, Union
 
 class Meta(BaseModel):
     canonical_version: str = "1.0"
@@ -59,9 +59,9 @@ class Education(BaseModel):
 
 class Preferences(BaseModel):
     remote: Optional[bool] = None
-    relocation: Optional[str] = None
+    relocation: Optional[Union[str, bool]] = None  # Allow both string and boolean
     notice_period_days: Optional[conint(ge=0, le=365)] = None
-    salary: Optional[Dict[str, float]] = None
+    salary: Optional[Dict[str, Union[str, float]]] = None  # Allow both string and float values
 
 class WorkAuth(BaseModel):
     country: Optional[str] = None

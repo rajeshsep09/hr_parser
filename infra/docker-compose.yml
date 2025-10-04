@@ -1,11 +1,15 @@
-version: "3.9"
 services:
   mongo:
     image: mongo:7
     container_name: hrp-mongo
     restart: unless-stopped
-    ports: ["27017:27017"]
+    ports:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    # Dev-only convenience; safe to remove
+    command: ["--setParameter", "enableTestCommands=1"]
+
 volumes:
   mongo_data:
+

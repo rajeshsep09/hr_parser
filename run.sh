@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 set -e
-uvicorn app.main:app --reload --port 8080
+uvicorn src.app.main:app --reload --port 8080

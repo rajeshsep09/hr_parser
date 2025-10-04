@@ -1,0 +1,59 @@
+Job Title: Data Science III
+Location: Chennai, India
+Work Model: Hybrid (3 Days Office, 2 Days WFH)
+Employment Type: full_time
+Travel Required: false
+Experience Required: 6-8 years
+Education: Bachelor's degree or higher in Computer Science, Data Science, or related field
+Visa Sponsorship: false
+
+Company: TechCorp India
+Industry: Technology
+Company Size: 201-1000
+
+Salary Range: 15-25 LPA
+Currency: INR
+Benefits: Health Insurance, Provident Fund, Performance Bonus, Learning Budget
+
+Job Description:
+We are seeking an experienced Data Scientist to join our growing analytics team in Chennai. This role combines hands-on data analysis with strategic business insights.
+
+Responsibilities:
+- Design and implement machine learning models for customer behavior prediction
+- Develop data pipelines and ETL processes using Python and SQL
+- Collaborate with product teams to define KPIs and success metrics
+- Present findings and recommendations to senior leadership
+- Mentor junior data analysts and scientists
+- Build and maintain data visualization dashboards
+
+Required Skills:
+- Python (Pandas, NumPy, Scikit-learn)
+- SQL and database management
+- Machine Learning algorithms
+- Statistical analysis
+- Data visualization (Tableau, Power BI, or Matplotlib)
+- Git version control
+
+Preferred Skills:
+- Deep Learning frameworks (TensorFlow, PyTorch)
+- Cloud platforms (AWS, Azure, GCP)
+- Big Data technologies (Spark, Hadoop)
+- A/B testing and experimentation
+- NLP or Computer Vision experience
+
+Qualifications:
+- 6-8 years of professional experience in data science or analytics
+- Strong programming skills in Python
+- Proven track record of delivering ML models to production
+- Excellent communication and presentation skills
+- Experience working in cross-functional teams
+
+Work Environment:
+Our Chennai office offers a modern workspace with collaborative areas and quiet zones. Hybrid work model allows flexibility with 3 days in office and 2 days work from home.
+
+Application Process:
+Interested candidates should apply with their resume and a brief cover letter highlighting relevant experience.
+
+Contact: careers@techcorp.in
+Application Deadline: 2025-12-31
+
